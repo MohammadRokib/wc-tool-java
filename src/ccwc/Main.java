@@ -10,109 +10,41 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
+
+    /**
+     * Entry point for the ccwc word count utility. Parses command-line arguments
+     * and delegates to the {@link Counter} class to perform the requested counts.
+     *
+     * @param args command-line arguments, expected to contain a flag and a filename
+     * @throws IOException if an I/O error occurs reading the file
+     */
     public static void main(String[] args) throws IOException {
-        if (args.length < 2) {
-            System.err.println("Usage: ccwc (-c | -l) <filename>");
+        Options opts = Options.parse(args);
+
+        if (opts.fileName == null) {
+            System.err.println("Usage: ccwc [-c] [-l] [-w] [-m] <filename>");
             System.exit(1);
         }
 
-        String flag = args[0];
-        String fileName = args[1];
-        Path path = Paths.get(fileName);
+        Path path = Paths.get(opts.fileName);
+        Counter counter = new Counter();
+        counter.count(path, opts);
 
-        switch (flag) {
-            case "-c":
-                System.out.println(countBytes(path) + " " + fileName);
-                break;
-            case "-l":
-                System.out.println(countLines(path) + " " + fileName);
-                break;
-            case "-w":
-                System.out.println(countWords(path) + " " + fileName);
-                break;
-            case "-m":
-                System.out.println(countChars(path) + " " + fileName);
-                break;
-            default:
-                System.err.println("Unknown flag: " + flag);
-                System.exit(1);
-        }
-    }
-
-    /**
-     * Counts the number of bytes in a file by streaming it through a buffer,
-     * without ever loading the whole file into memory
-     * */
-    private static long countBytes(Path path) throws IOException {
-        long count = 0;
-
-        try (InputStream in = Files.newInputStream(path)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-
-            while((bytesRead = in.read(buffer)) != -1) {
-                count += bytesRead;
+        if (opts.countBytes && opts.countLines && opts.countWords && !opts.countChars) {
+            System.out.printf("%8d %8d %8d %s\n", counter.lines, counter.words, counter.bytes, opts.fileName);
+        } else {
+            if (opts.countBytes) {
+                System.out.println(counter.bytes + " " + opts.fileName);
+            }
+            if (opts.countLines) {
+                System.out.println(counter.lines + " " + opts.fileName);
+            }
+            if (opts.countWords) {
+                System.out.println(counter.words + " " + opts.fileName);
+            }
+            if (opts.countChars) {
+                System.out.println(counter.chars + " " + opts.fileName);
             }
         }
-        return count;
-    }
-
-    /**
-     * Counts newline characters by streaming decoded characters through a BufferedReader
-     * */
-    private static long countLines(Path path) throws IOException {
-        long count = 0;
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
-            int ch;
-            while ((ch = reader.read()) != -1) {
-                if (ch == '\n') {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Counts words by streaming decoded characters and detecting transitions
-     * from whitespace to non-whitespace.
-     * */
-    private static long countWords(Path path) throws IOException {
-        long count = 0;
-        boolean inWord = false;
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
-            int ch;
-            while ((ch = reader.read()) != -1) {
-               if (Character.isWhitespace(ch)) {
-                   inWord = false;
-               } else if (!inWord) {
-                   count++;
-                   inWord = true;
-               }
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Counts characters by streaming decoded UTF-8 characters. The InputStreamReader's
-     * internal decoder handles multibyte sequences, so each read() returns one logical
-     * character regardless of how many bytes it occupies on disk.
-     * */
-    private static long countChars(Path path) throws IOException {
-        long count = 0;
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
-            int ch;
-            while((ch = reader.read()) != -1) {
-                count++;
-            }
-        }
-        return count;
     }
 }
