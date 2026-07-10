@@ -29,7 +29,7 @@ public class Main {
 
         try (InputStream in = Files.newInputStream(path)) {
             byte[] buffer = new byte[8192];
-            int bytesRead = 0;
+            int bytesRead;
 
             while((bytesRead = in.read(buffer)) != -1) {
                 count += bytesRead;
