@@ -1,23 +1,36 @@
 package ccwc;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        if (args.length < 2 || !args[0].equals("-c")) {
-            System.err.println("Usage: ccwc -c <filename>");
+        if (args.length < 2) {
+            System.err.println("Usage: ccwc (-c | -l) <filename>");
             System.exit(1);
         }
 
+        String flag = args[0];
         String fileName = args[1];
         Path path = Paths.get(fileName);
 
-        long byteCount = countBytes(path);
-        System.out.println(byteCount + " " + fileName);
+        switch (flag) {
+            case "-c":
+                System.out.println(countBytes(path) + " " + fileName);
+                break;
+            case "-l":
+                System.out.println(countLines(path) + " " + fileName);
+                break;
+            default:
+                System.err.println("Unknown flag: " + flag);
+                System.exit(1);
+        }
     }
 
     /**
@@ -33,6 +46,24 @@ public class Main {
 
             while((bytesRead = in.read(buffer)) != -1) {
                 count += bytesRead;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Counts newline characters by streaming decoded characters through a BufferedReader
+     * */
+    private static long countLines(Path path) throws IOException {
+        long count = 0;
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
+            int ch;
+            while ((ch = reader.read()) != -1) {
+                if (ch == '\n') {
+                    count++;
+                }
             }
         }
         return count;
