@@ -27,6 +27,9 @@ public class Main {
             case "-l":
                 System.out.println(countLines(path) + " " + fileName);
                 break;
+            case "-w":
+                System.out.println(countWords(path) + " " + fileName);
+                break;
             default:
                 System.err.println("Unknown flag: " + flag);
                 System.exit(1);
@@ -64,6 +67,28 @@ public class Main {
                 if (ch == '\n') {
                     count++;
                 }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Counts words by streaming decoded characters and detecting transitions
+     * from whitespace to non-whitespace.
+     * */
+    private static long countWords(Path path) throws IOException {
+        long count = 0;
+        boolean inWord = false;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
+            int ch;
+            while ((ch = reader.read()) != -1) {
+               if (Character.isWhitespace(ch)) {
+                   inWord = false;
+               } else if (!inWord) {
+                   count++;
+                   inWord = true;
+               }
             }
         }
         return count;
