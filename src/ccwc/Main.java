@@ -30,6 +30,9 @@ public class Main {
             case "-w":
                 System.out.println(countWords(path) + " " + fileName);
                 break;
+            case "-m":
+                System.out.println(countChars(path) + " " + fileName);
+                break;
             default:
                 System.err.println("Unknown flag: " + flag);
                 System.exit(1);
@@ -80,7 +83,8 @@ public class Main {
         long count = 0;
         boolean inWord = false;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
             int ch;
             while ((ch = reader.read()) != -1) {
                if (Character.isWhitespace(ch)) {
@@ -89,6 +93,24 @@ public class Main {
                    count++;
                    inWord = true;
                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Counts characters by streaming decoded UTF-8 characters. The InputStreamReader's
+     * internal decoder handles multibyte sequences, so each read() returns one logical
+     * character regardless of how many bytes it occupies on disk.
+     * */
+    private static long countChars(Path path) throws IOException {
+        long count = 0;
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
+            int ch;
+            while((ch = reader.read()) != -1) {
+                count++;
             }
         }
         return count;
