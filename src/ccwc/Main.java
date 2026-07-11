@@ -1,11 +1,6 @@
 package ccwc;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -20,30 +15,47 @@ public class Main {
      */
     public static void main(String[] args) throws IOException {
         Options opts = Options.parse(args);
+        Counter counter = new Counter();
 
         if (opts.fileName == null) {
-            System.err.println("Usage: ccwc [-c] [-l] [-w] [-m] <filename>");
-            System.exit(1);
+            counter.count(System.in, opts);
+            printResults(counter, opts, null);
+        } else {
+            Path path = Paths.get(opts.fileName);
+            counter.count(path, opts);
+            printResults(counter, opts, opts.fileName);
         }
+    }
 
-        Path path = Paths.get(opts.fileName);
-        Counter counter = new Counter();
-        counter.count(path, opts);
+    /**
+     * Prints the results from the counter to standard output. When all of
+     * {@code -c}, {@code -l}, {@code -w} are active and {@code -m} is not,
+     * the output is formatted as {@code "%8d %8d %8d [filename]"} matching
+     * the classic {@code wc} default format. Otherwise, each enabled metric
+     * is printed on its own line.
+     *
+     * @param counter  the counter whose results to print
+     * @param opts     the options indicating which metrics are enabled
+     * @param fileName the file name to include in the output, or {@code null}
+     *                 when reading from standard input
+     */
+    private static void printResults(Counter counter, Options opts, String fileName) {
+        String suffix = fileName == null ? "" : fileName;
 
         if (opts.countBytes && opts.countLines && opts.countWords && !opts.countChars) {
-            System.out.printf("%8d %8d %8d %s\n", counter.lines, counter.words, counter.bytes, opts.fileName);
+            System.out.printf("%8d %8d %8d %s\n", counter.lines, counter.words, counter.bytes, suffix);
         } else {
             if (opts.countBytes) {
-                System.out.println(counter.bytes + " " + opts.fileName);
+                System.out.println(counter.bytes + " " + suffix);
             }
             if (opts.countLines) {
-                System.out.println(counter.lines + " " + opts.fileName);
+                System.out.println(counter.lines + " " + suffix);
             }
             if (opts.countWords) {
-                System.out.println(counter.words + " " + opts.fileName);
+                System.out.println(counter.words + " " + suffix);
             }
             if (opts.countChars) {
-                System.out.println(counter.chars + " " + opts.fileName);
+                System.out.println(counter.chars + " " + suffix);
             }
         }
     }
