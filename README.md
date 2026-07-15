@@ -5,6 +5,7 @@
 # ccwc - A Java Implementation of the Unix `wc` Tool
 
 [![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.oracle.com/java/)
+[![CI](https://github.com/MohammadRokib/wc-tool-java/actions/workflows/ci.yml/badge.svg)](https://github.com/MohammadRokib/wc-tool-java/actions/workflows/ci.yml)
 
 `ccwc` (Coding Challenges Word Count) is a custom implementation of the classic Unix `wc` (word count) command-line utility, written entirely in Java. It is built to be memory-efficient, scalable for massive files, and fully compatible with standard Unix pipelines.
 
